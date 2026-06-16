@@ -351,6 +351,46 @@ class Graph {
         std::cout << "------------------------------------------\n";
     }
 
+    /**
+     * @brief Método que calcula la excentricidad de cada nodo.
+     * La excentricidad de v es la distancia más corta máxima desde v hacia cualquier otro nodo.
+     * Como el grafo puede no ser conexo, tomamos el máximo solo sobre los nodos alcanzables.
+     * @return un vector donde el resultado para el nodo v está en el índice v. Vale 0 si v no alcanza a nadie.
+     */
+    std::vector<double> eccentricity(){
+        int n = size();
+        std::vector<double> result(n, 0.0);
+
+        // por cada nodo v usamos dijkstra y nos quedamos con su distancia mayor
+        for(int v = 0; v < n; v++){
+            std::vector<double> dist = dijkstra(*this, v);
+            double maxDist = 0.0; // mayor distancia hacia un nodo alcanzable
+            for(int u = 0; u < n; u++){
+                if(v == u) continue;
+                if(dist[u] != std::numeric_limits<double>::infinity() && dist[u] > maxDist)
+                    maxDist = dist[u];
+            }
+            result[v] = maxDist;
+        }
+        return result;
+    }
+
+    void imprimirEccentricity() {
+        std::vector<double> ecc = eccentricity();
+
+        std::cout << "\n--- Resultados de Eccentricity ---\n";
+
+        std::cout << std::fixed << std::setprecision(6);
+
+        for (int i = 0; i < size(); i++) {
+            std::cout << "Nodo: " << getLabel(i)
+                      << " (ID: " << i << ") -> "
+                      << ecc[i] << "\n";
+        }
+
+        std::cout << "------------------------------------------\n";
+    }
+
 
 
 
