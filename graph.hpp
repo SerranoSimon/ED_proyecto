@@ -312,6 +312,45 @@ class Graph {
         std::cout << "------------------------------------------\n";
     }
 
+    /**
+     * @brief Método que calcula el Average Shortest Path.
+     * el promedio de las distancias más cortas entre todos los pares de nodos.
+     * Como el grafo puede no ser conexo, promediamos solo sobre los pares que sí se alcanzan.
+     * @return el largo promedio, o 0 si no hay ningún par alcanzable.
+     */
+    double averageShortestPath(){
+        int n = size();
+        double sumaDistancias = 0.0;   // suma de d(s,t) sobre los pares alcanzables
+        double paresAlcanzables = 0.0; // cantidad de pares (s,t) con camino
+
+        // por cada nodo fuente s usamos dijkstra y sumamos sus distancias finitas
+        for(int s = 0; s < n; s++){
+            std::vector<double> dist = dijkstra(*this, s);
+            for(int t = 0; t < n; t++){
+                if(s == t) continue;
+                if(dist[t] != std::numeric_limits<double>::infinity()){
+                    sumaDistancias += dist[t];
+                    paresAlcanzables++;
+                }
+            }
+        }
+
+        if(paresAlcanzables == 0) return 0.0;
+        return sumaDistancias / paresAlcanzables;
+    }
+
+    void imprimirAverageShortestPath() {
+        double L = averageShortestPath();
+
+        std::cout << "\n--- Resultado de Average Shortest Path ---\n";
+
+        std::cout << std::fixed << std::setprecision(6);
+
+        std::cout << "Largo promedio del camino mas corto: " << L << "\n";
+
+        std::cout << "------------------------------------------\n";
+    }
+
 
 
 
