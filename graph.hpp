@@ -6,6 +6,7 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <algorithm>
 // Estructura que representa una arista (u -> v) con su peso
 struct Edge {
     int u;
@@ -166,7 +167,85 @@ class Graph {
                       << " (ID: " << i << ") -> " 
                       << closeness[i] << "\n";
         }
-        
+
+        std::cout << "------------------------------------------\n";
+    }
+
+    /**
+     * @brief Método que calcula Betweenness Centrality.
+     * Mide la fracción de caminos más cortos entre cada par de nodos (s,t) que pasan por un nodo v.
+     * @return un vector donde el resultado para el nodo v está en el índice v.
+     * El valor está normalizado a [0,1] dividiendo por la cantidad de pares posibles (size-1)(size-2).
+     */
+    std::vector<double> betweennessCentrality(){
+        int n = size();
+        std::vector<double> CB(n, 0.0); // resultado acumulado para cada nodo
+
+        // por cada nodo fuente s usamos dijkstra y luego contamos caminos
+        for(int s = 0; s < n; s++){
+            // distancias mas cortas desde s 
+            std::vector<double> dist = dijkstra(*this, s);
+
+            // nodos alcanzables ordenados por distancia, lo recorremos como una pila
+            std::vector<int> orden;
+            for(int v = 0; v < n; v++)
+                if(dist[v] != std::numeric_limits<double>::infinity())
+                    orden.push_back(v);
+            std::sort(orden.begin(), orden.end(),
+                      [&](int a, int b){ return dist[a] < dist[b]; });
+
+            // numero de caminos mas cortos de s a cada nodo
+            std::vector<double> sigma(n, 0.0);
+            sigma[s] = 1.0;
+            // nodos previos a w en algun camino mas corto desde s
+            std::vector<std::vector<int>> predecesores(n);
+
+            // u es predecesor de w si esta justo antes en un camino mínimo
+            for(int u : orden){
+                for(const Adyacencia& a : vecinos(u)){
+                    int w = a.destino;
+                    if(dist[u] + a.peso == dist[w]){
+                        sigma[w] += sigma[u];
+                        predecesores[w].push_back(u);
+                    }
+                }
+            }
+
+            // recorremos orden al reves repartiendo la dependencia delta de cada nodo hacia sus predecesores
+            std::vector<double> delta(n, 0.0);
+            for(int i = (int)orden.size() - 1; i >= 0; i--){
+                int w = orden[i];
+                for(int v : predecesores[w]){
+                    delta[v] += (sigma[v] / sigma[w]) * (1.0 + delta[w]);
+                }
+                if(w != s){
+                    CB[w] += delta[w];
+                }
+            }
+        }
+
+        // normalizamos por la cantidad de pares (s,t) posibles distintos de v
+        double pares = (double)(n - 1) * (n - 2);
+        if(pares > 0){
+            for(int v = 0; v < n; v++)
+                CB[v] /= pares;
+        }
+        return CB;
+    }
+
+    void imprimirBetweennessCentrality() {
+        std::vector<double> betweenness = betweennessCentrality();
+
+        std::cout << "\n--- Resultados de Betweenness Centrality ---\n";
+
+        std::cout << std::fixed << std::setprecision(6);
+
+        for (int i = 0; i < size(); i++) {
+            std::cout << "Nodo: " << getLabel(i)
+                      << " (ID: " << i << ") -> "
+                      << betweenness[i] << "\n";
+        }
+
         std::cout << "------------------------------------------\n";
     }
 
