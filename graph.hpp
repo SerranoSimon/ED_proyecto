@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <limits>
 #include <algorithm>
+#include <cmath>
 // Estructura que representa una arista (u -> v) con su peso
 struct Edge {
     int u;
@@ -244,6 +245,68 @@ class Graph {
             std::cout << "Nodo: " << getLabel(i)
                       << " (ID: " << i << ") -> "
                       << betweenness[i] << "\n";
+        }
+
+        std::cout << "------------------------------------------\n";
+    }
+
+    /**
+     * @brief Método que calcula PageRank.
+     * Mide la importancia de un nodo según la importancia de los nodos que lo apuntan.
+     * @return un vector donde el resultado para el nodo v está en el índice v.
+     */
+    std::vector<double> pageRank(){
+        int n = size();
+        std::vector<double> pr(n, 1.0 / n); // rank inicial uniforme
+        if(n == 0) return pr;
+
+        const double d = 0.85;   // factor de amortiguacion habitual
+        const int maxIter = 100; // tope de iteraciones
+        const double tol = 1e-9; // corte cuando el rank ya casi no cambia
+
+        for(int iter = 0; iter < maxIter; iter++){
+            // salto aleatorio
+            std::vector<double> nuevo(n, (1.0 - d) / n);
+
+            double dangling = 0.0; // rank de los nodos sin salida
+            for(int u = 0; u < n; u++){
+                int grado = outDegree(u);
+                if(grado == 0){
+                    dangling += pr[u];
+                    continue;
+                }
+                double aporte = d * pr[u] / grado;
+                for(const Adyacencia& a : vecinos(u))
+                    nuevo[a.destino] += aporte;
+            }
+
+            // el rank de los nodos sin salida se reparte por igual entre todos
+            double aporteDangling = d * dangling / n;
+            for(int v = 0; v < n; v++)
+                nuevo[v] += aporteDangling;
+
+            // diferencia total 
+            double diff = 0.0;
+            for(int v = 0; v < n; v++)
+                diff += std::abs(nuevo[v] - pr[v]);
+
+            pr = nuevo;
+            if(diff < tol) break;
+        }
+        return pr;
+    }
+
+    void imprimirPageRank() {
+        std::vector<double> pr = pageRank();
+
+        std::cout << "\n--- Resultados de PageRank ---\n";
+
+        std::cout << std::fixed << std::setprecision(6);
+
+        for (int i = 0; i < size(); i++) {
+            std::cout << "Nodo: " << getLabel(i)
+                      << " (ID: " << i << ") -> "
+                      << pr[i] << "\n";
         }
 
         std::cout << "------------------------------------------\n";
