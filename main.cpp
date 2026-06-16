@@ -1,4 +1,5 @@
 #include "graph.hpp"
+// compilacion: g++ main.cpp graph.hpp dijkstra.cpp -o test
 int main(){
 
     GraphIP grafoIP;
@@ -11,7 +12,6 @@ int main(){
          std::cout << "Error cargando edgelist\n";
          return 1;
     } 
-    grafoIP.imprimirAristas();
-    //grafoProteinas.imprimirAristas();
+    grafoProteinas.imprimirClosenessCentrality();
     return 0;
 }
