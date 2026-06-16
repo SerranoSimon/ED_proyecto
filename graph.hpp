@@ -8,6 +8,7 @@
 #include <limits>
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 // Estructura que representa una arista (u -> v) con su peso
 struct Edge {
     int u;
@@ -386,6 +387,64 @@ class Graph {
             std::cout << "Nodo: " << getLabel(i)
                       << " (ID: " << i << ") -> "
                       << ecc[i] << "\n";
+        }
+
+        std::cout << "------------------------------------------\n";
+    }
+
+    /**
+     * @brief Método que calcula el Local Clustering Coefficient de cada nodo.
+     * Mide la probabilidad de que los vecinos de v estén conectados entre sí.
+     * LCC es una medida no dirigida, así que primero armamos la versión no dirigida del grafo.
+     * @return un vector donde el resultado para el nodo v está en el índice v. Vale 0 si v tiene menos de 2 vecinos.
+     */
+    std::vector<double> localClusteringCoefficient(){
+        int n = size();
+        std::vector<double> result(n, 0.0);
+
+        // a y b son vecinos si hay arista en cualquier sentido
+        std::vector<std::unordered_set<int>> nbr(n);
+        for(int u = 0; u < n; u++)
+            for(const Adyacencia& a : vecinos(u))
+                if(a.destino != u){
+                    nbr[u].insert(a.destino);
+                    nbr[a.destino].insert(u);
+                }
+
+        std::vector<char> esVecino(n, 0); // marca los vecinos del nodo actual
+        for(int v = 0; v < n; v++){
+            int grado = nbr[v].size();
+            if(grado < 2) continue; // sin al menos 2 vecinos no hay pares posibles
+
+            // marcamos los vecinos de v
+            for(int a : nbr[v]) esVecino[a] = 1;
+
+            // contamos aristas entre vecinos de v 
+            long enlaces = 0;
+            for(int a : nbr[v])
+                for(int b : nbr[a])
+                    if(b != a && esVecino[b])
+                        enlaces++;
+
+            result[v] = (double)enlaces / ((double)grado * (grado - 1));
+
+            // limpiamos las marcas para el siguiente nodo
+            for(int a : nbr[v]) esVecino[a] = 0;
+        }
+        return result;
+    }
+
+    void imprimirLocalClusteringCoefficient() {
+        std::vector<double> lcc = localClusteringCoefficient();
+
+        std::cout << "\n--- Resultados de Local Clustering Coefficient ---\n";
+
+        std::cout << std::fixed << std::setprecision(6);
+
+        for (int i = 0; i < size(); i++) {
+            std::cout << "Nodo: " << getLabel(i)
+                      << " (ID: " << i << ") -> "
+                      << lcc[i] << "\n";
         }
 
         std::cout << "------------------------------------------\n";
