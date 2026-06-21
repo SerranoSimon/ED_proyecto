@@ -457,9 +457,7 @@ class Graph {
 
 class GraphIP : public Graph{
     public:
-    /// @brief En esta implementación se revisa si ya existe una conexion en la misma dirección
-    ///        de los mismos dispositivos, de ser así, sumamos la duracion, es decir, el peso
-    ///        es la duración acumulada. Si no es una arista repetida, la agregamos.
+    /// @brief la distancia se mide en saltos, así que cada arista tiene peso 1. Si la conexion ya existe en la misma dirección no acumulamos
     /// @param from 
     /// @param to 
     /// @param weight 
@@ -468,14 +466,13 @@ class GraphIP : public Graph{
         int v = getId(to);
         for (Adyacencia& a : listasAdj[u]) {
              if (a.destino == v) {
-                a.peso+=weight;
-                return;
+                return; // ya existe, no acumulamos 
             }
         }
-        listasAdj[u].push_back(Adyacencia{v, weight});
+        listasAdj[u].push_back(Adyacencia{v, 1.0});
     }
 
-    /// @brief Cargamos desde el csv la ip origen, ip destino y duracion de cada conexion.
+    /// @brief Cargamos desde el csv la ip origen y la ip destino de cada conexion.
     ///        implementación sacada del lab11 del curso.
     /// @param filename 
     /// @return 
@@ -506,15 +503,14 @@ class GraphIP : public Graph{
                 continue;
 
             std::string ip_origen, ip_destino;
-            double duracion;
 
             ip_origen = f[0];
             ip_destino = f[2];
 
 
-            duracion = f[6].empty() ? 0.0 : std::stod(f[6]);
+            // pasamos peso 1 
             
-            agregarArista(ip_origen,ip_destino,duracion);
+            agregarArista(ip_origen, ip_destino, 1.0);
         }
 
     return true;
