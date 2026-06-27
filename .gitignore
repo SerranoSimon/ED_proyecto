@@ -1,0 +1,16 @@
+# C
+mpilados
+experimentos
+experimentos.exe
+
+# Entorno virtual de Python
+venv/
+.venv/
+__pycache__/
+
+# Logs
+log.txt
+
+grafico_tiempos.png
+grafico_boxplot.png
+grafico_aristas.png
